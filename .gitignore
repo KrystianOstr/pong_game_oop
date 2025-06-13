@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+
+# PyInstaller
+*.spec
+dist/
+build/
+
+# Pygame specific (czasem assety tymczasowe)
+*.log
+*.tmp
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS and Linux system files
+.DS_Store
+Thumbs.db
+
+# Test/report output
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# dotenv
+.env
+
+# Jupyter and notebooks
+.ipynb_checkpoints/
+
+# Others
+*.bak
+*.orig
