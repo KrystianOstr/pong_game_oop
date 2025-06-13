@@ -46,6 +46,15 @@ while running:
     ball.draw(screen)
     ball.move(SCREEN_WIDTH, SCREEN_HEIGHT)
 
+    # collisions
+    player_paddle_rect = py.Rect(
+        player_paddle.x, player_paddle.y, player_paddle.width, player_paddle.height
+    )
+    ball_rect = py.Rect(ball.x, ball.y, ball.width, ball.height)
+
+    if ball_rect.colliderect(player_paddle_rect):
+        ball.speed_x *= -1
+
     py.display.flip()
 
 
