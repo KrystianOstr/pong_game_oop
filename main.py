@@ -1,6 +1,8 @@
 import pygame as py
+
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, MAX_POINTS, COLORS, FONT
 
+from game_classes.sound_manager import SoundManager
 from game_classes.game_ui import GameUi
 from game_classes.paddle import Paddle
 from game_classes.ball import Ball
@@ -16,6 +18,7 @@ clock = py.time.Clock()
 
 point_time = 0
 last_scorer = None
+point_sound_played = False
 
 # ALIASES
 
@@ -61,6 +64,7 @@ ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 game_ui = GameUi(40, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT)
 scoreboard = Scoreboard(0, 0, white)
+sound_manager = SoundManager()
 
 game_state = "start"
 running = True
@@ -119,6 +123,7 @@ while running:
         if ball_rect.colliderect(player_paddle_rect) or ball_rect.colliderect(
             player_2_paddle_rect
         ):
+            sound_manager.play_bounce()
             ball.vel_x *= -1
 
         # get_points
@@ -132,6 +137,7 @@ while running:
                 point_time = py.time.get_ticks()
                 game_state = "point_scored"
                 last_scorer = 2
+                point_sound_played = False
         elif ball.x > SCREEN_WIDTH + 50:
             # player1
             scoreboard.add_point(1)
@@ -142,8 +148,12 @@ while running:
                 point_time = py.time.get_ticks()
                 game_state = "point_scored"
                 last_scorer = 1
+                point_sound_played = False
 
     if game_state == "point_scored":
+        if not point_sound_played:
+            sound_manager.play_point()
+            point_sound_played = True
         game_ui.draw_point_screen(
             screen, last_scorer, green if last_scorer == 1 else blue
         )
@@ -152,6 +162,7 @@ while running:
             game_state = "running"
 
     if game_state == "game_over":
+        sound_manager.play_gameover()
         game_ui.draw_game_over(screen, winner, green if winner == 1 else blue)
         game_ui.draw_text(
             screen,
