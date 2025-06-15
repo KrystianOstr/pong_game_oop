@@ -7,6 +7,7 @@ from game_classes.ball import Ball
 from game_classes.scoreboard import Scoreboard
 
 py.init()
+py.mixer.init()
 
 
 clock = py.time.Clock()
