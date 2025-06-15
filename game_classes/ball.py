@@ -33,7 +33,7 @@ class Ball:
             self.vel_y *= -1
 
     def reset(self, screen_width, screen_height):
-        py.time.delay(1000)
+        # py.time.delay(1000)
         self.x = screen_width // 2
         self.y = random.randint(0, screen_height - self.height)
         self.vel_x = random.choice([-1, 1]) * self.speed

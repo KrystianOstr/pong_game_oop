@@ -1,61 +1,65 @@
 import pygame as py
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, MAX_POINTS, COLORS, FONT
 
+from game_classes.game_ui import GameUi
 from game_classes.paddle import Paddle
 from game_classes.ball import Ball
+from game_classes.scoreboard import Scoreboard
 
 py.init()
 
-# variables
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+
 clock = py.time.Clock()
-FPS = 60
 
+# variables
 
-# screen center
+point_time = 0
+last_scorer = None
 
-# colors
-black = (0, 0, 0)
-white = (255, 255, 255)
-green = (0, 255, 0)
-blue = (0, 0, 255)
-red = (255, 0, 0)
+# ALIASES
 
-# fonts
-game_font = "Roboto"
-small_font = 20
-medium_font = 32
-big_font = 44
+# font alias
+font_name = FONT["name"]
+
+# color alias
+green = COLORS["green"]
+blue = COLORS["blue"]
+red = COLORS["red"]
+white = COLORS["white"]
+black = COLORS["black"]
+
 
 # scores
-score = {"player_green": 0, "player_blue": 0}
 
 screen = py.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 py.display.set_caption("Pong OOP")
 
-player_paddle = Paddle(50, 10, 20, 100, green, 1)
-player_2_paddle = Paddle(SCREEN_WIDTH - 80, 10, 20, 100, blue, 2)
+player_paddle_height = 100
+player2_paddle_height = 150
+
+player_paddle = Paddle(
+    50,
+    SCREEN_HEIGHT // 2 - player_paddle_height // 2,
+    20,
+    player_paddle_height,
+    green,
+    1,
+)
+player_2_paddle = Paddle(
+    SCREEN_WIDTH - 80,
+    SCREEN_HEIGHT // 2 - player2_paddle_height // 2,
+    20,
+    player2_paddle_height,
+    blue,
+    2,
+)
 ball = Ball(50, 50, 20, 20, red, 5)
 
 ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 
-def draw_text(font_size, color, message, center=True, position=(0, 0)):
-    font = py.font.SysFont(game_font, font_size)
-    text = font.render(message, True, color)
-
-    if center:
-        centered_pos = (
-            SCREEN_WIDTH // 2 - text.get_width() // 2,
-            SCREEN_HEIGHT // 2 - text.get_height() // 2,
-        )
-        screen.blit(
-            text,
-            centered_pos,
-        )
-    else:
-        screen.blit(text, position)
-
+game_ui = GameUi(40, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT)
+scoreboard = Scoreboard(0, 0, white)
 
 game_state = "start"
 running = True
@@ -67,27 +71,25 @@ while running:
         if event.type == py.QUIT:
             running = False
         if event.type == py.KEYDOWN:
-            game_state = "running"
+            if game_state == "start":
+                game_state = "running"
             if event.key == py.K_ESCAPE:
                 running = False
+            if game_state == "game_over" and event.key == py.K_RETURN:
+                point_time = 0
+                last_scorer = None
+                scoreboard.scoreboard_reset()
+                ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
+                game_state = "running"
 
     if game_state == "start":
-        draw_text(
-            big_font,
-            white,
-            "Wciśnij ENTER, aby zacząć",
-        )
+        game_ui.draw_start_screen(screen)
 
     if game_state == "running":
-        draw_text(
-            big_font,
-            white,
-            f"{score['player_green']} | {score['player_blue']}",
-            False,
-            (SCREEN_WIDTH // 2 - 70, 10),
-        )
 
         keys = py.key.get_pressed()
+
+        scoreboard.draw(screen, SCREEN_WIDTH)
 
         # player
         player_paddle.move_keyboard(keys, SCREEN_HEIGHT)
@@ -120,11 +122,43 @@ while running:
 
         # get_points
         if ball.x < -50:
-            score["player_blue"] += 1
-            ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
+            # player2
+            scoreboard.add_point(2)
+            if scoreboard.player2_score >= MAX_POINTS:
+                game_state = "game_over"
+                winner = 2
+            else:
+                point_time = py.time.get_ticks()
+                game_state = "point_scored"
+                last_scorer = 2
         elif ball.x > SCREEN_WIDTH + 50:
-            score["player_green"] += 1
+            # player1
+            scoreboard.add_point(1)
+            if scoreboard.player1_score >= MAX_POINTS:
+                game_state = "game_over"
+                winner = 1
+            else:
+                point_time = py.time.get_ticks()
+                game_state = "point_scored"
+                last_scorer = 1
+
+    if game_state == "point_scored":
+        game_ui.draw_point_screen(
+            screen, last_scorer, green if last_scorer == 1 else blue
+        )
+        if py.time.get_ticks() - point_time > 1000:
             ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
+            game_state = "running"
+
+    if game_state == "game_over":
+        game_ui.draw_game_over(screen, winner, green if winner == 1 else blue)
+        game_ui.draw_text(
+            screen,
+            f"{scoreboard.player1_score} : {scoreboard.player2_score}",
+            (0, 330),
+            center_y=False,
+        )
+        game_ui.draw_text(screen, "Press ENTER to restart", (0, 500), center_y=False)
 
     py.display.flip()
 
