@@ -21,3 +21,9 @@ FONT = {
     "medium": 32,
     "big": 44,
 }
+
+DIFFICULTY_SETTINGS = {
+    "easy": {"ai_speed": 4, "miss_chance": 0.4},
+    "medium": {"ai_speed": 6, "miss_chance": 0.25},
+    "hard": {"ai_speed": 8, "miss_chance": 0.1},
+}

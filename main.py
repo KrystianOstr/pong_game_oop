@@ -19,6 +19,7 @@ clock = py.time.Clock()
 point_time = 0
 last_scorer = None
 point_sound_played = False
+ai_difficulty = "medium"
 
 # ALIASES
 
@@ -41,6 +42,8 @@ py.display.set_caption("Pong OOP")
 player_paddle_height = 100
 player2_paddle_height = 150
 
+
+# CLASSES INIT
 player_paddle = Paddle(
     50,
     SCREEN_HEIGHT // 2 - player_paddle_height // 2,
@@ -56,15 +59,19 @@ player_2_paddle = Paddle(
     player2_paddle_height,
     blue,
     2,
+    ai_enabled=True,
 )
+
+player_2_paddle.set_ai_difficulty(ai_difficulty)
+
+
 ball = Ball(50, 50, 20, 20, red, 5)
-
-ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
-
-
 game_ui = GameUi(40, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT)
 scoreboard = Scoreboard(0, 0, white)
 sound_manager = SoundManager()
+
+ball.reset(SCREEN_WIDTH, SCREEN_HEIGHT)
+
 
 game_state = "start"
 running = True
@@ -100,8 +107,11 @@ while running:
         player_paddle.move_keyboard(keys, SCREEN_HEIGHT)
         player_paddle.draw(screen)
 
-        # player2
-        player_2_paddle.move_keyboard(keys, SCREEN_HEIGHT)
+        # player2 AI_ENABLED OR NO
+        if player_2_paddle.ai_enabled:
+            player_2_paddle.move_ai(ball.y)
+        else:
+            player_2_paddle.move_keyboard(keys, SCREEN_HEIGHT)
         player_2_paddle.draw(screen)
 
         # ball
