@@ -1,0 +1,67 @@
+name: Upload and Build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: pyintaller build
+        run: |
+          pyinstaller --onefile \
+            --name PongGame \
+            --add-data "assets;assets" \
+            --noconsole \
+            main.py
+
+      - name: prepare file to upload
+        run: |
+          mkdir out
+          cp dist/PongGame.exe out/PongGame-win-x64-${GITHUB_REF_NAME}.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PongGame-win-x64-${GITHUB_REF_NAME}
+          path: out/PongGame-win-x64-${GITHUB_REF_NAME}.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: PongGame-win-x64-${GITHUB_REF_NAME}
+          path: out/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: out/PongGame-win-x64-${{ github.ref_name }}.exe
+          draft: false
+          prerelease: false
